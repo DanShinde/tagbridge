@@ -39,6 +39,7 @@ class MqttBridge:
         self._queue: asyncio.Queue[Event] = asyncio.Queue(maxsize=10_000)
         self._connected = asyncio.Event()
         self._tasks: set[asyncio.Task[Any]] = set()
+        self._born: set[str] = set()
         gateway.add_listener(self)
 
     # Listener interface -------------------------------------------------------------
@@ -175,6 +176,7 @@ class MqttBridge:
             await self._publish(client, self.uns.gateway_status(True))
         if self.sparkplug is not None:
             await self._publish(client, self.sparkplug.node_birth())
+        self._born.clear()
         for device in self.gateway.devices.values():
             if device.online:
                 for message in self._render("online", device, None):
@@ -184,6 +186,16 @@ class MqttBridge:
 
     def _render(self, kind: str, device: DeviceState, data: Any) -> list[Message]:
         messages: list[Message] = []
+        if kind == "online":
+            if device.name in self._born:
+                return messages
+            self._born.add(device.name)
+        elif kind == "offline":
+            if device.name not in self._born:
+                return messages
+            self._born.discard(device.name)
+        elif kind == "data" and device.name not in self._born:
+            return messages
         if self.sparkplug is not None:
             if kind == "online":
                 messages.append(self.sparkplug.device_birth(device))
