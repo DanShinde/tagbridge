@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Ship a Grafana dashboard for `/metrics` at `deploy/grafana/tagbridge-dashboard.json` (device
+  online, MQTT connected, read/read-error/connect-error rates, published messages, writes, drops),
+  with a `${DS_PROMETHEUS}` datasource input and a `device` template variable. The Helm chart can
+  ship it as a sidecar ConfigMap via `grafanaDashboard.enabled: true`.
+- `tests/test_grafana_dashboard.py` keeps the dashboard's metric names in sync with
+  `render_metrics`.
 - New `examples/fakeplc/docker-compose.yml`: a three-service demo (Mosquitto, fakeplc serving the
   bundled `line1.yaml`, tagbridge) using [examples/fakeplc-line1.yaml](examples/fakeplc-line1.yaml), plus a README "Try it
   with fakeplc" section.

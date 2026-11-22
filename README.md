@@ -230,7 +230,15 @@ probes, runs as non-root with a read-only root filesystem, and can create a Prom
 ## Monitoring
 
 `GET /metrics` exposes `tagbridge_device_online{device}`, `tagbridge_mqtt_connected`, and
-counters for reads, read errors, changes, published messages and writes.
+counters for reads, read errors, connect errors, changes, published messages, writes and
+drops.
+
+A ready-made Grafana dashboard lives at
+[deploy/grafana/tagbridge-dashboard.json](deploy/grafana/tagbridge-dashboard.json) — import it
+with a `${DS_PROMETHEUS}` datasource input and a `device` template variable. When deploying with
+Helm, set `grafanaDashboard.enabled: true` to ship it as a `grafana_dashboard: "1"` ConfigMap
+for the Grafana sidecar. `tests/test_grafana_dashboard.py` keeps the dashboard's metric names in
+sync with `render_metrics`.
 
 ## Related projects
 
