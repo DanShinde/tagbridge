@@ -183,6 +183,16 @@ def cmd_browse(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_watch(args: argparse.Namespace) -> int:
+    from .watch import watch
+
+    topics = args.topic or ["spBv1.0/#"]
+    _run_forever(
+        watch(args.host, args.port, topics, args.username, args.password, limit=args.count)
+    )
+    return 0
+
+
 def cmd_demo(args: argparse.Namespace) -> int:
     from .demo import run_demo
 
@@ -224,6 +234,17 @@ def build_parser() -> argparse.ArgumentParser:
     browse.add_argument("--username")
     browse.add_argument("--password")
     browse.set_defaults(func=cmd_browse)
+
+    watch = sub.add_parser("watch", help="print MQTT messages, decoding Sparkplug B payloads")
+    watch.add_argument("--host", default="localhost")
+    watch.add_argument("--port", type=int, default=1883)
+    watch.add_argument(
+        "-t", "--topic", action="append", help="topic filter (default spBv1.0/#), repeatable"
+    )
+    watch.add_argument("--username")
+    watch.add_argument("--password")
+    watch.add_argument("-n", "--count", type=int, help="exit after this many messages")
+    watch.set_defaults(func=cmd_watch)
 
     demo = sub.add_parser("demo-server", help="start a demo Modbus TCP and OPC UA server")
     demo.add_argument("--host", default="0.0.0.0")
