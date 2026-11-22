@@ -13,7 +13,8 @@ requires-python = ">=3.10"
 authors = [{ name = "Dan Shinde" }]
 keywords = [
   "mqtt", "sparkplug", "sparkplug-b", "modbus", "opc-ua", "opcua", "iiot",
-  "unified-namespace", "uns", "gateway", "plc", "scada", "industrial", "edge",
+  "unified-namespace", "uns", "gateway", "mqtt-gateway", "modbus-tcp", "modbus-rtu",
+  "plc", "scada", "industrial", "iot", "edge", "isa-95",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",

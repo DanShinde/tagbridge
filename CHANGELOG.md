@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 (2026-11-22)
+
+- New `tagbridge watch` command: prints MQTT traffic and decodes Sparkplug B payloads, resolving
+  aliases from births.
+- Fix: a device that came online while the MQTT session was starting could get two DBIRTHs.
+- Fix: `demo-server` now closes client connections and exits promptly on shutdown.
+- CI checks Sparkplug output with the Eclipse Tahu reference decoder (`interop/tahu`).
+- Demo GIF and Unified Namespace example in the README; more PyPI keywords.
+
 ## 0.1.0 (2026-11-22)
 
 First release.

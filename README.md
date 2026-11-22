@@ -7,6 +7,8 @@
 [![Python](https://img.shields.io/pypi/pyversions/tagbridge.svg)](https://pypi.org/project/tagbridge/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+![tagbridge demo: Sparkplug B births and data decoded live, then setpoint and run writes over MQTT](docs/demo.gif)
+
 ```
  PLCs / drives / meters                 tagbridge                         MQTT broker
 ┌──────────────────────┐      ┌──────────────────────────────┐      ┌──────────────────────────┐
@@ -44,13 +46,32 @@ docker compose up
 ```
 
 This starts Mosquitto, a simulated PLC (Modbus TCP on 5020 and OPC UA on 4840) and tagbridge with
-[examples/demo.yaml](examples/demo.yaml). Point [MQTT Explorer](https://mqtt-explorer.com/) at
-`localhost:1883`, or:
+[examples/demo.yaml](examples/demo.yaml). Then:
 
 ```bash
-curl localhost:8080/api/tags                                   # live values
+tagbridge watch                                                # Sparkplug B, decoded
+mosquitto_sub -v -t 'acme/plant1/#'                            # the UNS topics
+curl localhost:8080/api/tags                                   # live values as JSON
 mosquitto_pub -t acme/plant1/press1/setpoint/set -m 65         # write a setpoint
 ```
+
+The Unified Namespace side looks like this (retained, so new subscribers get every value at once):
+
+```text
+acme/plant1/_gateway/_status online
+acme/plant1/press1/_status online
+acme/plant1/press1/temperature {"value":74.66,"timestamp":1795335922919,"quality":"good","unit":"degC"}
+acme/plant1/press1/pressure {"value":45.0,"timestamp":1795335920916,"quality":"good","unit":"bar"}
+acme/plant1/press1/part_count {"value":13,"timestamp":1795335922919,"quality":"good"}
+acme/plant1/press1/setpoint {"value":70.0,"timestamp":1795335916913,"quality":"good","unit":"degC"}
+acme/plant1/press1/alarms/high_temperature {"value":true,"timestamp":1795335920916,"quality":"good"}
+acme/plant1/press1/running {"value":true,"timestamp":1795335916911,"quality":"good"}
+acme/plant1/line1/_status online
+acme/plant1/line1/speed {"value":122.05,"timestamp":1795335923005,"quality":"good","unit":"ppm"}
+acme/plant1/line1/state {"value":"Running","timestamp":1795335915997,"quality":"good"}
+```
+
+[MQTT Explorer](https://mqtt-explorer.com/) on `localhost:1883` shows the same tree graphically.
 
 ## Install
 
@@ -155,8 +176,19 @@ tagbridge browse opc.tcp://192.168.1.30:4840 --name filler > filler.yaml
 | `NDEATH` | Registered as the MQTT will (QoS 1) and published on clean shutdown. |
 | `NCMD` / `DCMD` | Rebirth requests and writes to `writable` tags, by name or alias. |
 
+**Interoperability.** CI runs [interop/tahu](interop/tahu) on every push: a passive host
+application built on [Eclipse Tahu](https://github.com/eclipse-tahu/tahu), the Sparkplug reference
+implementation, decodes every message while the PLC is restarted and the gateway is killed, and
+checks `seq` ordering, `bdSeq` pairing between NBIRTH and NDEATH, births before data, and that every
+DDATA alias and datatype was declared in the DBIRTH.
+
+`tagbridge watch` prints Sparkplug B traffic from any edge node, decoded, which is handy when
+commissioning other Sparkplug devices too.
+
 Not in v0.1 yet: primary host `STATE` awareness, store and forward while the broker is down,
-Sparkplug templates and datasets.
+Sparkplug templates and datasets. When both Sparkplug and UNS are enabled the MQTT will is the
+Sparkplug NDEATH, so after a crash the UNS `_status` topics are only updated on the next start
+(a clean shutdown updates both).
 
 ## Writes
 
@@ -196,6 +228,7 @@ uv sync --all-extras
 uv run pytest              # set TAGBRIDGE_TEST_MQTT=host:port to run the broker test
 uv run ruff check . && uv run mypy
 uv run tagbridge demo-server   # local Modbus + OPC UA simulator
+interop/tahu/run.sh            # Sparkplug check with Eclipse Tahu (needs Java, Maven, a broker)
 ```
 
 Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
