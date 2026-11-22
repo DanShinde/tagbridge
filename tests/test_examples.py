@@ -47,11 +47,14 @@ def test_fakeplc_compose_example_has_the_three_services():
     assert services["mosquitto"]["image"].startswith("eclipse-mosquitto:")
     # fakeplc runs its bundled line1.yaml and exposes Modbus + OPC UA.
     fakeplc = services["fakeplc"]
+    assert fakeplc["image"] == "python:3.12.7-slim"  # pinned base image
+    assert "pip install --quiet fakeplc==0.1.0" in fakeplc["command"][-1]  # pinned package
     assert "fakeplc serve /line1.yaml" in fakeplc["command"][-1]
     assert any(v.endswith(":/line1.yaml:ro") for v in fakeplc["volumes"])
     assert "5020:5020" in fakeplc["ports"] and "4840:4840" in fakeplc["ports"]
     # tagbridge points at the broker and the fake PLC and mounts the line1 mapping.
     tagbridge = services["tagbridge"]
+    assert tagbridge["image"] == "ghcr.io/danshinde/tagbridge:0.1.1"  # pinned, not latest
     assert tagbridge["environment"]["MQTT_HOST"] == "mosquitto"
     assert tagbridge["environment"]["PLC_HOST"] == "fakeplc"
     assert any(v.endswith(":/config/tagbridge.yaml:ro") for v in tagbridge["volumes"])
