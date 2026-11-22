@@ -30,6 +30,7 @@ class MiniModbusServer:
     def __init__(self, memory: ModbusMemory, host: str = "0.0.0.0", port: int = 5020) -> None:
         self.memory, self.host, self.port = memory, host, port
         self._server: asyncio.Server | None = None
+        self._writers: set[asyncio.StreamWriter] = set()
 
     async def start(self) -> None:
         self._server = await asyncio.start_server(self._client, self.host, self.port)
@@ -40,9 +41,12 @@ class MiniModbusServer:
     async def stop(self) -> None:
         if self._server is not None:
             self._server.close()
+            for writer in list(self._writers):
+                writer.close()
             await self._server.wait_closed()
 
     async def _client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        self._writers.add(writer)
         try:
             while True:
                 header = await reader.readexactly(7)
@@ -54,6 +58,7 @@ class MiniModbusServer:
         except (asyncio.IncompleteReadError, ConnectionError):
             pass
         finally:
+            self._writers.discard(writer)
             writer.close()
 
     def handle(self, pdu: bytes) -> bytes:
@@ -175,7 +180,10 @@ class DemoOpcUa:
 
     async def stop(self) -> None:
         if self.server is not None:
-            await self.server.stop()
+            try:
+                await asyncio.wait_for(self.server.stop(), 3)
+            except (asyncio.TimeoutError, Exception):
+                log.debug("OPC UA server did not stop cleanly", exc_info=True)
 
 
 async def run_demo(
