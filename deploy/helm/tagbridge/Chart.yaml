@@ -1,0 +1,9 @@
+apiVersion: v2
+name: tagbridge
+description: Modbus and OPC UA to MQTT gateway with Sparkplug B
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/DanShinde/tagbridge
+sources: [https://github.com/DanShinde/tagbridge]
+keywords: [mqtt, sparkplug, modbus, opcua, iiot]

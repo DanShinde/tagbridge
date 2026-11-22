@@ -1,0 +1,40 @@
+# Works with `tagbridge demo-server` (or docker compose up in this folder).
+mqtt:
+  host: ${MQTT_HOST:-localhost}
+  port: 1883
+
+sparkplug:
+  enabled: true
+  group_id: Plant1
+  edge_node_id: ${EDGE_NODE_ID:-gateway-01}
+
+uns:
+  enabled: true
+  topic_prefix: acme/plant1
+  allow_writes: true
+
+devices:
+  - name: press1
+    type: modbus
+    host: ${DEMO_HOST:-localhost}
+    port: 5020
+    unit_id: 1
+    scan_ms: 1000
+    tags:
+      - { name: temperature, address: "hr:0", datatype: float32, unit: degC, deadband: 0.2 }
+      - { name: pressure, address: "hr:2", datatype: uint16, scale: 0.1, unit: bar }
+      - { name: part_count, address: "hr:3", datatype: uint32 }
+      - { name: setpoint, address: "hr:10", datatype: uint16, scale: 0.1, unit: degC, writable: true }
+      - { name: alarms/high_temperature, address: "hr:20.0" }
+      - { name: running, address: "co:0", writable: true }
+
+  - name: line1
+    type: opcua
+    endpoint: opc.tcp://${DEMO_HOST:-localhost}:4840/tagbridge/demo
+    mode: subscribe
+    scan_ms: 500
+    tags:
+      - { name: speed, node: "ns=2;s=Line1.Speed", unit: ppm, deadband: 0.5 }
+      - { name: state, node: "ns=2;s=Line1.State" }
+      - { name: count, node: "ns=2;s=Line1.Count" }
+      - { name: target_speed, node: "ns=2;s=Line1.Target", writable: true }

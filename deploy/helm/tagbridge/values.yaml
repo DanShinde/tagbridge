@@ -1,0 +1,42 @@
+image:
+  repository: ghcr.io/danshinde/tagbridge
+  tag: ""          # defaults to the chart appVersion
+  pullPolicy: IfNotPresent
+
+# One gateway per edge node. Sparkplug requires a single publisher per edge_node_id,
+# so keep replicas at 1.
+replicaCount: 1
+
+# The tagbridge YAML config, rendered into a ConfigMap and mounted at /config/tagbridge.yaml.
+# ${VAR} references are resolved from the container environment (see env / envFromSecret).
+config:
+  mqtt:
+    host: mosquitto
+    port: 1883
+    username: ${MQTT_USERNAME:-}
+    password: ${MQTT_PASSWORD:-}
+  sparkplug:
+    enabled: true
+    group_id: Plant1
+    edge_node_id: gateway-01
+  uns:
+    enabled: false
+    topic_prefix: acme/plant1
+  devices: []
+
+env: []
+# Name of an existing Secret whose keys become environment variables (e.g. MQTT_PASSWORD).
+envFromSecret: ""
+
+resources:
+  requests: {cpu: 50m, memory: 64Mi}
+  limits: {memory: 256Mi}
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

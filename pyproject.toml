@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tagbridge"
+dynamic = ["version"]
+description = "Config-driven Modbus and OPC UA to MQTT gateway with Sparkplug B and Unified Namespace support"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Dan Shinde" }]
+keywords = [
+  "mqtt", "sparkplug", "sparkplug-b", "modbus", "opc-ua", "opcua", "iiot",
+  "unified-namespace", "uns", "gateway", "plc", "scada", "industrial", "edge",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Manufacturing",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: System :: Hardware",
+  "Topic :: System :: Networking",
+  "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+  "Typing :: Typed",
+]
+dependencies = [
+  "aiomqtt>=2.3",
+  "pydantic>=2.6",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+modbus = ["pymodbus>=3.10"]
+opcua = ["asyncua>=1.1"]
+serial = ["pymodbus[serial]>=3.10"]
+all = ["pymodbus[serial]>=3.10", "asyncua>=1.1"]
+
+[project.scripts]
+tagbridge = "tagbridge.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/DanShinde/tagbridge"
+Documentation = "https://github.com/DanShinde/tagbridge#readme"
+Issues = "https://github.com/DanShinde/tagbridge/issues"
+Changelog = "https://github.com/DanShinde/tagbridge/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML",
+  "amqtt>=0.11",
+  "pymodbus>=3.10",
+  "asyncua>=1.1",
+  "protobuf>=4.21",
+]
+
+[tool.hatch.version]
+path = "src/tagbridge/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+packages = ["tagbridge"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["asyncua", "asyncua.*", "pymodbus", "pymodbus.*"]
+ignore_missing_imports = true
+follow_imports = "skip"

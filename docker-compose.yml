@@ -1,0 +1,26 @@
+# Full demo: a simulated PLC (Modbus TCP + OPC UA), an MQTT broker and the gateway.
+#   docker compose up
+# Then watch MQTT on localhost:1883 (e.g. with MQTT Explorer) and open
+# http://localhost:8080/api/tags for a live JSON snapshot.
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883"]
+    volumes:
+      - ./deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  plc:
+    image: ghcr.io/danshinde/tagbridge:latest
+    build: .
+    command: ["demo-server"]
+
+  tagbridge:
+    image: ghcr.io/danshinde/tagbridge:latest
+    build: .
+    depends_on: [mosquitto, plc]
+    environment:
+      MQTT_HOST: mosquitto
+      DEMO_HOST: plc
+    volumes:
+      - ./examples/demo.yaml:/config/tagbridge.yaml:ro
+    ports: ["8080:8080"]

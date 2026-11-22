@@ -1,0 +1,43 @@
+# Bridge the fakeplc "line1" example plant (https://github.com/DanShinde/fakeplc) to MQTT.
+#   fakeplc serve examples/line1.yaml
+#   tagbridge run examples/fakeplc-line1.yaml
+mqtt:
+  host: ${MQTT_HOST:-localhost}
+
+sparkplug:
+  group_id: Plant1
+  edge_node_id: line1-gateway
+
+uns:
+  enabled: true
+  topic_prefix: acme/plant1
+  allow_writes: true
+
+devices:
+  # Over Modbus TCP
+  - name: line1-modbus
+    type: modbus
+    host: ${PLC_HOST:-localhost}
+    port: 5020
+    scan_ms: 500
+    tags:
+      - { name: Motor/Start, address: "coil 0", writable: true }
+      - { name: Motor/Fault, address: "coil 1", writable: true }
+      - { name: Motor/Running, address: "discrete 0" }
+      - { name: Motor/Speed, address: "input 0", datatype: float32, unit: rpm }
+      - { name: Tank/Level, address: "holding 0", datatype: float32, unit: "%", deadband: 0.1 }
+      - { name: Pump/Setpoint, address: "holding 2", datatype: float32, writable: true }
+      - { name: Batch/Count, address: "holding 4", datatype: int32 }
+      - { name: Line/Temp, address: "input 2", datatype: float32, unit: degC, deadband: 0.2 }
+
+  # The same tags over OPC UA
+  - name: line1-opcua
+    type: opcua
+    endpoint: opc.tcp://${PLC_HOST:-localhost}:4840
+    scan_ms: 500
+    tags:
+      - { name: Motor/Start, node: "ns=2;s=Motor.Start", writable: true }
+      - { name: Motor/Running, node: "ns=2;s=Motor.Running" }
+      - { name: Motor/Speed, node: "ns=2;s=Motor.Speed", unit: rpm }
+      - { name: Batch/Count, node: "ns=2;s=Batch.Count" }
+      - { name: Line/Temp, node: "ns=2;s=Line.Temp", deadband: 0.2 }
