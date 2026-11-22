@@ -1,0 +1,13 @@
+{{- if .Values.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tagbridge.fullname" . }}-dashboard
+  labels:
+    {{- include "tagbridge.labels" . | nindent 4 }}
+    # Picked up by the Grafana sidecar, which loads dashboards from labelled ConfigMaps.
+    grafana_dashboard: "1"
+data:
+  tagbridge.json: |
+{{ .Files.Get "grafana/tagbridge-dashboard.json" | indent 4 }}
+{{- end }}

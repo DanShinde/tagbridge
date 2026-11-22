@@ -36,6 +36,11 @@ serviceMonitor:
   enabled: false
   interval: 30s
 
+# Ship the Grafana dashboard (deploy/grafana/tagbridge-dashboard.json) as a
+# ConfigMap labelled grafana_dashboard: "1", which the Grafana sidecar picks up.
+grafanaDashboard:
+  enabled: false
+
 podAnnotations: {}
 nodeSelector: {}
 tolerations: []
