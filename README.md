@@ -46,7 +46,25 @@ docker compose up
 ```
 
 This starts Mosquitto, a simulated PLC (Modbus TCP on 5020 and OPC UA on 4840) and tagbridge with
-[examples/demo.yaml](examples/demo.yaml). Then:
+[examples/demo.yaml](examples/demo.yaml).
+
+### Try it with fakeplc
+
+For a scriptable fake PLC (a motor, tank and batch counter with logic rules) instead of the
+built-in simulator:
+
+```bash
+docker compose -f examples/fakeplc/docker-compose.yml up
+```
+
+This runs [eclipse-mosquitto:2](https://hub.docker.com/_/eclipse-mosquitto), a
+[fakeplc](https://github.com/DanShinde/fakeplc) service (`pip install fakeplc` on
+`python:3.12-slim`, serving the bundled `examples/fakeplc/line1.yaml` on Modbus 5020 and OPC UA
+4840), and tagbridge mounting [examples/fakeplc-line1.yaml](examples/fakeplc-line1.yaml) with
+`MQTT_HOST`/`PLC_HOST` pointed at the two services. The same MQTT commands as above work against
+`acme/plant1/line1-modbus/#` and `acme/plant1/line1-opcua/#`.
+
+Then:
 
 ```bash
 tagbridge watch                                                # Sparkplug B, decoded

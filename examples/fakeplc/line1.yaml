@@ -1,0 +1,25 @@
+# A small packaging line: a motor, a tank and a batch counter.
+plc: line1
+scan_ms: 100
+seed: 1
+
+opcua:
+  port: 4840
+modbus:
+  port: 5020
+  word_order: big
+
+tags:
+  Motor.Start:   {type: bool, modbus: coil 0, description: Start command from the HMI}
+  Motor.Fault:   {type: bool, modbus: coil 1}
+  Motor.Running: {type: bool, modbus: discrete 0}
+  Motor.Speed:   {type: real, modbus: input 0, unit: rpm}
+  Tank.Level:    {type: real, modbus: holding 0, value: 42.5, unit: "%"}
+  Pump.Setpoint: {type: real, modbus: holding 2, unit: "l/min"}
+  Batch.Count:   {type: dint, modbus: holding 4}
+  Line.Temp:     {type: real, modbus: input 2, sim: "noise(21.5, 0.3)", unit: degC}
+
+logic:
+  - Motor.Running = Motor.Start and not Motor.Fault
+  - Motor.Speed = min(Motor.Speed + 150, 1500) if Motor.Running else 0
+  - Batch.Count = Batch.Count + 1 if Motor.Running else Batch.Count

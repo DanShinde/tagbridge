@@ -8,6 +8,12 @@
   ship it as a sidecar ConfigMap via `grafanaDashboard.enabled: true`.
 - `tests/test_grafana_dashboard.py` keeps the dashboard's metric names in sync with
   `render_metrics`.
+- New `examples/fakeplc/docker-compose.yml`: a three-service demo (Mosquitto, fakeplc serving the
+  bundled `line1.yaml`, tagbridge) using [examples/fakeplc-line1.yaml](examples/fakeplc-line1.yaml), plus a README "Try it
+  with fakeplc" section.
+- `tests/test_examples.py`: every `examples/*.yaml` loads via `load_config` (with env substitution)
+  and each device builds a source with `create_source`; the compose example's services, env and
+  mounts are checked, so broken example configs fail CI.
 
 ## 0.1.1 (2026-11-22)
 
