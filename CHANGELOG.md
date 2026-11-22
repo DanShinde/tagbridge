@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- New `examples/fakeplc/docker-compose.yml`: a three-service demo (Mosquitto, fakeplc serving the
+  bundled `line1.yaml`, tagbridge) using [examples/fakeplc-line1.yaml], plus a README "Try it
+  with fakeplc" section.
+- `tests/test_examples.py`: every `examples/*.yaml` loads via `load_config` (with env substitution)
+  and each device builds a source with `create_source`; the compose example's services, env and
+  mounts are checked, so broken example configs fail CI.
+
 ## 0.1.1 (2026-11-22)
 
 - New `tagbridge watch` command: prints MQTT traffic and decodes Sparkplug B payloads, resolving

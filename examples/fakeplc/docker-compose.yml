@@ -1,0 +1,32 @@
+# Demo with a scriptable fake PLC instead of the built-in simulator:
+#   docker compose -f examples/fakeplc/docker-compose.yml up
+# Then watch MQTT on localhost:1883 (e.g. MQTT Explorer) or open
+# http://localhost:8080/api/tags for a live JSON snapshot.
+#
+# fakeplc is pip-installed here because it does not ship a Docker image yet
+# (https://github.com/DanShinde/fakeplc/issues/1); its line1.yaml is bundled
+# in this directory.
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883"]
+    volumes:
+      - ../../deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  fakeplc:
+    image: python:3.12-slim
+    command: ["sh", "-c", "pip install --quiet fakeplc && exec fakeplc serve /line1.yaml"]
+    volumes:
+      - ./line1.yaml:/line1.yaml:ro
+    ports: ["5020:5020", "4840:4840"]
+
+  tagbridge:
+    image: ghcr.io/danshinde/tagbridge:latest
+    build: ../..
+    depends_on: [mosquitto, fakeplc]
+    environment:
+      MQTT_HOST: mosquitto
+      PLC_HOST: fakeplc
+    volumes:
+      - ../fakeplc-line1.yaml:/config/tagbridge.yaml:ro
+    ports: ["8080:8080"]
